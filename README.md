@@ -28,6 +28,43 @@ https://netcult.ch/elmue/CANable%20Firmware%20Update
 
 ________________________
 
+## Building from Source
+
+### Prerequisites
+
+- [ARM GCC toolchain](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm) (`arm-none-eabi-gcc`)
+- [CMake](https://cmake.org/) (3.20 or newer)
+
+### Build all targets
+
+```bash
+./build_all.sh
+```
+
+This configures and builds all 14 firmware variants (Slcan + Candlelight for each supported board). Output `.bin` and `.hex` files are placed in the `build/` directory.
+
+### Build with a specific version
+
+```bash
+mkdir -p build && cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/arm-none-eabi.cmake \
+      -DVERSION_MAJOR=1 -DVERSION_MINOR=0 -DVERSION_PATCH=0 ..
+cmake --build . --parallel $(nproc)
+```
+
+### Versioning
+
+Firmware uses semantic versioning (major.minor.patch). The version is embedded in the USB device descriptor (`bcdDevice`). To release, tag and push:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The GitHub Actions workflow will build all targets and create a release with the firmware binaries attached.
+
+________________________
+
 Latest Updates:
 You find the version history here:
 

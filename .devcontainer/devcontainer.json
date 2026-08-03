@@ -1,0 +1,16 @@
+{
+  "name": "Candelabra STM32 Firmware",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.makefile-tools",
+        "ms-vscode.cmake-tools"
+      ]
+    }
+  },
+  "postCreateCommand": "arm-none-eabi-gcc --version && cmake --version && make --version && curl -fsSL https://claude.ai/install.sh | bash"
+}

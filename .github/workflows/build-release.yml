@@ -1,0 +1,57 @@
+name: Build and Release Firmware
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-arm-none-eabi \
+            libnewlib-arm-none-eabi \
+            cmake
+
+      - name: Parse version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          MAJOR=$(echo "$TAG" | cut -d. -f1)
+          MINOR=$(echo "$TAG" | cut -d. -f2)
+          PATCH=$(echo "$TAG" | cut -d. -f3)
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Configure
+        run: |
+          cmake -B build \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi.cmake \
+            -DVERSION_MAJOR=${{ steps.version.outputs.major }} \
+            -DVERSION_MINOR=${{ steps.version.outputs.minor }} \
+            -DVERSION_PATCH=${{ steps.version.outputs.patch }}
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p release
+          find build -maxdepth 1 -name "*.bin" -exec cp {} release/ \;
+          find build -maxdepth 1 -name "*.hex" -exec cp {} release/ \;
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Firmware v${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          files: release/*
