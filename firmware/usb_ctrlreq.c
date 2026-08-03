@@ -29,9 +29,9 @@ extern USBD_HandleTypeDef  USB_Handle;
 // extern uint8_t USBD_DeviceQualifierDesc[]; // only for High Speed USB devices
 
 #if defined(Candlelight)
-    #define USBD_PRODUCT_STRING  "Candlelight 2.5 - " TARGET_BOARD
+    #define USBD_PRODUCT_STRING  "Candelabra Candlelight v" FIRMWARE_VERSION_STR " - " TARGET_BOARD
 #else
-    #define USBD_PRODUCT_STRING  "Slcan 2.5 - " TARGET_BOARD
+    #define USBD_PRODUCT_STRING  "Candelabra Slcan v" FIRMWARE_VERSION_STR " - " TARGET_BOARD
 #endif
 
 // USB lang indentifier descriptor.
@@ -367,7 +367,7 @@ static void USBD_GetDescriptor(USBD_SetupReqTypedef *req)
                     break;
 
                 case USBD_IDX_MFC_STR:     // USB Device Manufacrturer String
-                    pbuf = USBD_GetStringDescr("ElmueSoft (netcult.ch/elmue)", &len);
+                    pbuf = USBD_GetStringDescr("Candelabra", &len);
                     break;
 
                 case USBD_IDX_PRODUCT_STR: // USB Device Product String
