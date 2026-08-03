@@ -1,0 +1,3 @@
+[submodule "webdfu"]
+	path = webdfu
+	url = https://github.com/bseishen/candelabra-web.git

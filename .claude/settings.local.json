@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Read(//home/vscode/.claude/**)"
+      "Read(//home/vscode/.claude/**)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

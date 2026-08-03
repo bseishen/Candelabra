@@ -32,7 +32,7 @@ function(add_firmware_target FIRMWARE BOARD MCU QUARTZ)
         message(FATAL_ERROR "Unsupported MCU: ${MCU}")
     endif()
 
-    set(TARGET_NAME ${MCU}_${FIRMWARE}_${BOARD})
+    set(TARGET_NAME ${FIRMWARE}_${MCU}_${BOARD})
     string(TOLOWER ${MCU_SERIE}_HAL_Driver MCU_DRIVER_DIR)
     set(DRIVER_PATH ${CMAKE_SOURCE_DIR}/stm32/${MCU_DRIVER_DIR})
     set(CONFIG_DIR ${DRIVER_PATH}/config)
@@ -106,6 +106,8 @@ function(add_firmware_target FIRMWARE BOARD MCU QUARTZ)
 
     target_link_libraries(${TARGET_NAME} PRIVATE c m nosys)
 
+    set(BINARIES_DIR ${CMAKE_BINARY_DIR}/binaries)
+
     set_target_properties(${TARGET_NAME} PROPERTIES
         SUFFIX .elf
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
@@ -118,17 +120,19 @@ function(add_firmware_target FIRMWARE BOARD MCU QUARTZ)
 
     # Generate .bin
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${BINARIES_DIR}
         COMMAND ${CMAKE_OBJCOPY} -O binary
             $<TARGET_FILE:${TARGET_NAME}>
-            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.bin
+            ${BINARIES_DIR}/${TARGET_NAME}.bin
         COMMENT "Generating ${TARGET_NAME}.bin"
     )
 
     # Generate .hex
     add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${BINARIES_DIR}
         COMMAND ${CMAKE_OBJCOPY} -O ihex
             $<TARGET_FILE:${TARGET_NAME}>
-            ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.hex
+            ${BINARIES_DIR}/${TARGET_NAME}.hex
         COMMENT "Generating ${TARGET_NAME}.hex"
     )
 endfunction()

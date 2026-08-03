@@ -49,8 +49,8 @@ jobs:
       - name: Collect artifacts
         run: |
           mkdir -p release
-          find build -maxdepth 1 -name "*.bin" -exec cp {} release/ \;
-          find build -maxdepth 1 -name "*.hex" -exec cp {} release/ \;
+          cp build/binaries/*.bin release/
+          cp build/binaries/*.hex release/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

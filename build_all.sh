@@ -12,4 +12,4 @@ cmake --build . --parallel "$(nproc)"
 
 echo ""
 echo "Build complete. Output files:"
-find "${BUILD_DIR}" -maxdepth 1 \( -name "*.bin" -o -name "*.hex" \) | sort
+find "${BUILD_DIR}/binaries" -maxdepth 1 \( -name "*.bin" -o -name "*.hex" \) | sort
