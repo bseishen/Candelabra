@@ -9,3 +9,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dfu-util \
     git \
     && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /home/vscode/.claude && chown vscode:vscode /home/vscode/.claude

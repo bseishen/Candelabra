@@ -33,19 +33,21 @@ function(add_firmware_target FIRMWARE BOARD MCU QUARTZ)
     endif()
 
     set(TARGET_NAME ${MCU}_${FIRMWARE}_${BOARD})
-    set(DRIVER_PATH ${CMAKE_SOURCE_DIR}/STM32/${MCU_SERIE}_HAL_Driver)
-    set(CONFIG_DIR ${DRIVER_PATH}/Config)
+    string(TOLOWER ${MCU_SERIE}_HAL_Driver MCU_DRIVER_DIR)
+    set(DRIVER_PATH ${CMAKE_SOURCE_DIR}/stm32/${MCU_DRIVER_DIR})
+    set(CONFIG_DIR ${DRIVER_PATH}/config)
 
     # -- Collect sources --
 
     # Common firmware sources
-    file(GLOB COMMON_SOURCES ${CMAKE_SOURCE_DIR}/Firmware/*.c)
+    string(TOLOWER ${FIRMWARE} FIRMWARE_DIR)
+    file(GLOB COMMON_SOURCES ${CMAKE_SOURCE_DIR}/firmware/*.c)
 
-    # Firmware-variant sources (Candlelight or Slcan)
-    file(GLOB VARIANT_SOURCES ${CMAKE_SOURCE_DIR}/Firmware/${FIRMWARE}/*.c)
+    # Firmware-variant sources (candlelight or slcan)
+    file(GLOB VARIANT_SOURCES ${CMAKE_SOURCE_DIR}/firmware/${FIRMWARE_DIR}/*.c)
 
     # HAL driver sources (exclude templates)
-    file(GLOB HAL_SOURCES ${DRIVER_PATH}/Src/*.c)
+    file(GLOB HAL_SOURCES ${DRIVER_PATH}/src/*.c)
     list(FILTER HAL_SOURCES EXCLUDE REGEX "_template\\.c$")
 
     # System and startup
@@ -62,12 +64,11 @@ function(add_firmware_target FIRMWARE BOARD MCU QUARTZ)
     )
 
     target_include_directories(${TARGET_NAME} PRIVATE
-        ${CMAKE_SOURCE_DIR}/STM32/CMSIS
-        ${DRIVER_PATH}/Inc
+        ${CMAKE_SOURCE_DIR}/stm32/cmsis
+        ${DRIVER_PATH}/inc
         ${CONFIG_DIR}
-        ${CMAKE_SOURCE_DIR}/Firmware
-        ${CMAKE_SOURCE_DIR}/Firmware/USB
-        ${CMAKE_SOURCE_DIR}/Firmware/${FIRMWARE}
+        ${CMAKE_SOURCE_DIR}/firmware
+        ${CMAKE_SOURCE_DIR}/firmware/${FIRMWARE_DIR}
     )
 
     target_compile_definitions(${TARGET_NAME} PRIVATE
