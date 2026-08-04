@@ -30,6 +30,7 @@ Works with Chrome, Edge, Opera, and other Chromium-based browsers (requires WebU
 | Board | MCU | Quartz |
 |---|---|---|
 | Multiboard (MKS Makerbase, Walfront, DSD Tech, etc.) | STM32G431 | RC oscillator |
+| Multiboard (MKS Makerbase, Walfront, DSD Tech, etc.) | STM32G473 | RC oscillator |
 | Jhoinrch | STM32G431 | 25 MHz |
 | OpenlightLabs | STM32G431 | RC oscillator |
 | OleksiiSolo | STM32G431 | 8 MHz |
@@ -37,7 +38,7 @@ Works with Chrome, Edge, Opera, and other Chromium-based browsers (requires WebU
 | WeActStudio USB2CANFD v1 | STM32G0B1 | 16 MHz |
 | WeActStudio USB2CANFD v2 | STM32G431 | 16 MHz |
 
-**Multiboard** refers to the numerous generic STM32G431 CANable clones from various manufacturers (MKS Makerbase, Walfront, DSD Tech, and others) that share the same pinout and PCB layout. If your adapter is an unbranded or budget STM32G431 CANable clone, Multiboard is likely the correct target.
+**Multiboard** refers to the numerous generic CANable clones from various manufacturers (MKS Makerbase, Walfront, DSD Tech, and others) that share the same pinout and PCB layout. If your adapter is an unbranded or budget STM32G431 or STM32G473 CANable clone, Multiboard is likely the correct target.
 
 Tested up to 10 Mbaud on STM32G431 isolated adapters from MKS Makerbase and Jhoinrch. The firmware is designed to be easily expandable for future processors and boards.
 
@@ -74,7 +75,7 @@ To use it: open the repo in VS Code, then **Reopen in Container** when prompted 
 ./build_all.sh
 ```
 
-This configures and builds all 14 firmware variants (Slcan + Candlelight for each supported board). Output `.bin` and `.hex` files are placed in the `build/binaries/` directory.
+This configures and builds all 16 firmware variants (Slcan + Candlelight for each supported board). Output `.bin` and `.hex` files are placed in the `build/binaries/` directory.
 
 ### Build with a specific version
 
