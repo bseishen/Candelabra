@@ -145,6 +145,10 @@ endfunction()
 add_firmware_target(Candlelight Multiboard   STM32G431 0)
 add_firmware_target(Slcan       Multiboard   STM32G431 0)
 
+# Multiboard (G473, no quartz)
+add_firmware_target(Candlelight Multiboard   STM32G473 0)
+add_firmware_target(Slcan       Multiboard   STM32G473 0)
+
 # Jhoinrch (G431, 25 MHz)
 add_firmware_target(Candlelight Jhoinrch     STM32G431 25000000)
 add_firmware_target(Slcan       Jhoinrch     STM32G431 25000000)
