@@ -30,7 +30,7 @@ Works with Chrome, Edge, Opera, and other Chromium-based browsers (requires WebU
 | Board | MCU | Quartz |
 |---|---|---|
 | Multiboard (MKS Makerbase, Walfront, DSD Tech, etc.) | STM32G431 | RC oscillator |
-| Multiboard (MKS Makerbase, Walfront, DSD Tech, etc.) | STM32G473 | RC oscillator |
+| Multiboard (Walfront) | STM32G473 | RC oscillator |
 | Jhoinrch | STM32G431 | 25 MHz |
 | OpenlightLabs | STM32G431 | RC oscillator |
 | OleksiiSolo | STM32G431 | 8 MHz |
