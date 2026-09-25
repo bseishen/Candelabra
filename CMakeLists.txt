@@ -172,3 +172,7 @@ add_firmware_target(Slcan       WeActStudioV1 STM32G0B1 16000000)
 # WeActStudioV2 (G431, 16 MHz)
 add_firmware_target(Candlelight WeActStudioV2 STM32G431 16000000)
 add_firmware_target(Slcan       WeActStudioV2 STM32G431 16000000)
+
+# BigTreeTechU2C (G0B1, 8 MHz)
+add_firmware_target(Candlelight BigTreeTechU2C STM32G0B1 8000000)
+add_firmware_target(Slcan       BigTreeTechU2C STM32G0B1 8000000)

@@ -37,6 +37,7 @@ Works with Chrome, Edge, Opera, and other Chromium-based browsers (requires WebU
 | OleksiiDual (dual channel) | STM32G473 | 8 MHz |
 | WeActStudio USB2CANFD v1 | STM32G0B1 | 16 MHz |
 | WeActStudio USB2CANFD v2 | STM32G431 | 16 MHz |
+| BigTreeTech U2C v2 | STM32G0B1 | 8 MHz |
 
 **Multiboard** refers to the numerous generic CANable clones from various manufacturers (MKS Makerbase, Walfront, DSD Tech, and others) that share the same pinout and PCB layout. If your adapter is an unbranded or budget STM32G431 or STM32G473 CANable clone, Multiboard is likely the correct target.
 
