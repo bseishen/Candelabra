@@ -29,9 +29,9 @@ extern USBD_HandleTypeDef  USB_Handle;
 // extern uint8_t USBD_DeviceQualifierDesc[]; // only for High Speed USB devices
 
 #if defined(Candlelight)
-    #define USBD_PRODUCT_STRING  "Candelabra Candlelight v" FIRMWARE_VERSION_STR " - " TARGET_BOARD
+    #define USBD_PRODUCT_STRING  "Candelabra Candlelight v" FIRMWARE_VERSION_STR " - " ADAPTER_NAME
 #else
-    #define USBD_PRODUCT_STRING  "Candelabra Slcan v" FIRMWARE_VERSION_STR " - " TARGET_BOARD
+    #define USBD_PRODUCT_STRING  "Candelabra Slcan v" FIRMWARE_VERSION_STR " - " ADAPTER_NAME
 #endif
 
 // USB lang indentifier descriptor.
