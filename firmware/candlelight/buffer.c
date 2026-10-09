@@ -86,9 +86,13 @@ void buf_process(uint8_t channel, uint32_t tick_now)
     buf_process_can (channel, can_buf);
     buf_process_host(channel, usb_buf);
 
+    // A frame has been sent to CAN bus --> accept frames from the host again
+    USBD_ResumeOutTransfer(channel);
+
     // The APP_xxx errors are deleted after sending them to the host.
     // They must be refreshed here, so the Rx + Tx LED stay ON permanently and show that there is a problem.
-    if (can_buf->can_fifo .IsFull) error_assert(channel, APP_CanTxOverflow, false);
+    // A full can_fifo is not an error: the USB OUT endpoint NAKs the host until there is space again (back-pressure).
+    // APP_CanTxOverflow is only reported when a frame really had to be dropped (buf_store_tx_packet, blobs).
     if (usb_buf->host_fifo.IsFull) error_assert(channel, APP_UsbInOverflow, false);
 }
 
@@ -600,6 +604,25 @@ bool buf_store_host_packet(uint8_t channel, void* packet, int size)
 {
     buf_class* usb_buf = buf_get_inst_for_usb(channel);
     return FifoWrite(&usb_buf->host_fifo, packet, size); // Fifo overflow is reported in buf_process()
+}
+
+// Back-pressure: return true if the host may send the next USB OUT transfer on the endpoint of this channel.
+// Two free entries are required: one for the next frame and one for a frame that may already be in the
+// second PMA buffer of the double buffered OUT endpoint when it is set to NAK.
+// The legacy protocol routes the frames for all CAN channels through interface 0 --> all channels must have space.
+// A Tx blob that does not fit is still rejected as before (the host must send it again).
+bool buf_can_accept_from_host(uint8_t channel)
+{
+    for (int C=0; C<CHANNEL_COUNT; C++)
+    {
+        if (GLB_ProtoElmue && C != channel)
+            continue;
+
+        kFifo* can_fifo = &buf_inst[C].can_fifo;
+        if (can_fifo->Count + 2 > can_fifo->MaxCount)
+            return false;
+    }
+    return true;
 }
 
 // ---------------------------------------------

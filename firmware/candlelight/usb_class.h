@@ -21,6 +21,7 @@
 
 void               USBD_SendInDataToHost(uint8_t channel, uint8_t* buf, uint16_t len);
 void               USBD_AbortInTransfer(uint8_t channel);
+void               USBD_ResumeOutTransfer(uint8_t channel);
 USBD_StatusTypeDef USBD_ConfigureEndpoints();
 bool               USBD_SetupStageRequest();
 uint8_t*           USBD_GetUserStringDescr(uint8_t index, uint16_t *length);

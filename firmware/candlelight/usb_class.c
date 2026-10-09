@@ -399,7 +399,8 @@ uint8_t USB_IRQ_Init(uint8_t cfgidx)
     for (uint8_t C=0; C<CANDLE_INRERFACE_COUNT; C++)
     {
         buf_class* inst = buf_get_instance(C);
-        inst->TxBusy = false;
+        inst->TxBusy   = false;
+        inst->RxPaused = false;
 
         // fill reverse lookup table: endpoint --> channel
         EpToChannel[EndpointsIN [C] & 0xF] = C; // 0x81 --> 0, 0x83 --> 1, 0x85 --> 2
@@ -545,18 +546,43 @@ void ResetDfuStatus()
 // host data has arrived on the USB OUT endpoint (0x02, 0x04, 0x06)
 uint8_t USB_IRQ_DataOut(uint8_t epnum)
 {
-    uint8_t channel = EpToChannel[epnum & 0xF]; // epnum = 0x02 --> channel 0, 0x04 --> 1, 0x06 --> 2
-    buf_class* usb_buf = buf_get_instance(channel);
+    uint8_t ep_channel = EpToChannel[epnum & 0xF]; // epnum = 0x02 --> channel 0, 0x04 --> 1, 0x06 --> 2
+    buf_class* usb_buf = buf_get_instance(ep_channel);
 
     // Legacy routes all traffic though interface 0
-    if (!GLB_ProtoElmue)
-        channel = 0;
+    uint8_t channel = GLB_ProtoElmue ? ep_channel : 0;
 
     buf_store_can_frame_blob(channel, usb_buf->from_host_buf);
 
     // pass the buffer from_host_buf to the HAL for the next frame to receive
     USBD_LL_PrepareReceive(epnum, usb_buf->from_host_buf, sizeof(usb_buf->from_host_buf));
+
+    // Back-pressure (added by Candelabra):
+    // The legacy firmware accepted every frame from the host and silently dropped it when the CAN Tx FIFO was full.
+    // Instead, NAK the host until buf_process() has sent frames to CAN bus and USBD_ResumeOutTransfer() accepts data again.
+    if (!buf_can_accept_from_host(ep_channel))
+    {
+        usb_buf->RxPaused = true;
+        USBD_LL_SetOutReady(epnum, false);
+    }
     return USBD_OK; // ignored
+}
+
+// Called from the main loop
+// Accept USB OUT data from the host again after USB_IRQ_DataOut() has set the endpoint to NAK.
+void USBD_ResumeOutTransfer(uint8_t channel)
+{
+    buf_class* usb_buf = buf_get_instance(channel);
+    if (!usb_buf->RxPaused)
+        return;
+
+    system_disable_irq();
+    if (usb_buf->RxPaused && buf_can_accept_from_host(channel))
+    {
+        usb_buf->RxPaused = false;
+        USBD_LL_SetOutReady(EndpointsOUT[channel], true);
+    }
+    system_enable_irq();
 }
 
 // interrupt callback

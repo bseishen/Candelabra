@@ -229,6 +229,20 @@ USBD_StatusTypeDef USBD_LL_FlushEP(uint8_t ep_addr)
     return USBD_OK;
 }
 
+// @brief  Back-pressure for an OUT endpoint that has already been armed with USBD_LL_PrepareReceive().
+// @param  ep_addr: Endpoint number
+// @param  ready:   false --> NAK all OUT packets from the host, true --> accept them again.
+// The receive buffer stays armed, so a transfer that was interrupted by the NAK continues where it stopped.
+// ATTENTION: For a double buffered endpoint one more packet may already be in the second PMA buffer when NAK is set.
+USBD_StatusTypeDef USBD_LL_SetOutReady(uint8_t ep_addr, bool ready)
+{
+    if ((ep_addr & 0x80) != 0)
+        return USBD_FAIL; // IN endpoints are not supported
+
+    PCD_SET_EP_RX_STATUS(PCD_Handle.Instance, ep_addr & 0x0F, ready ? USB_EP_RX_VALID : USB_EP_RX_NAK);
+    return USBD_OK;
+}
+
 // @brief  Sets a Stall condition on an endpoint of the Low Level Driver.
 // @param  ep_addr: Endpoint number
 USBD_StatusTypeDef USBD_LL_StallEP(uint8_t ep_addr)
