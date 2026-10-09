@@ -13,8 +13,8 @@ with the 70% silent TX drop under load. See [Findings](#findings).
 | File | What |
 |---|---|
 | `flood_test.py` | The test. Windows and Linux, needs only `libusb1` |
-| `results_v1.1.0_flow-control.txt` | Raw output with the fixed firmware (classic 250k / 1M, FD 500k/5M, control run) |
-| `results_rx_v1.0.2.txt`, `results_rx_2.5.txt` | Raw output of the first (pyusb) version of this test on the old firmware. Most of what they show is stale data, see finding 1 |
+| `results/results_v1.1.0_flow-control.txt` | Raw output with the fixed firmware (classic 250k / 1M, FD 500k/5M, control run) |
+| `results/results_rx_v1.0.2.txt`, `results/results_rx_2.5.txt` | Raw output of the first (pyusb) version of this test on the old firmware. Most of what they show is stale data, see finding 1 |
 
 ## Running it
 
@@ -191,7 +191,7 @@ cables off adapters that have to run a saturated bus.
 
 ### Results with the fixed firmware
 
-From `results_v1.1.0_flow-control.txt` (Windows, async test). "Good cable"
+From `results/results_v1.1.0_flow-control.txt` (Windows, async test). "Good cable"
 means the receiver wasn't on cable X:
 
 | Bus | Frames/s | Receiver (good cable) | Echoes |
