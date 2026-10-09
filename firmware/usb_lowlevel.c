@@ -212,11 +212,21 @@ USBD_StatusTypeDef USBD_LL_CloseEP(uint8_t ep_addr)
     return ConvStatus(HAL_PCD_EP_Close(&PCD_Handle, ep_addr));
 }
 
-// @brief  Flushes an endpoint of the Low Level Driver.
+// @brief  Flushes an IN endpoint of the Low Level Driver.
 // @param  ep_addr: Endpoint number
+// HAL_PCD_EP_Flush() does nothing on this USB peripheral: it has no FIFOs, a packet waits in the PMA until the host fetches it.
+// Set the endpoint to NAK, so a packet that is already loaded into the PMA is never sent, and discard a pending transfer complete flag.
+// Do not use HAL_PCD_EP_Close() + HAL_PCD_EP_Open() for this: they reset the data toggle, which the host does not know about,
+// so the host would silently discard the next packet.
 USBD_StatusTypeDef USBD_LL_FlushEP(uint8_t ep_addr)
 {
-    return ConvStatus(HAL_PCD_EP_Flush(&PCD_Handle, ep_addr));
+    if ((ep_addr & 0x80) == 0)
+        return USBD_FAIL; // OUT endpoints are not supported
+
+    uint8_t epnum = ep_addr & 0x0F;
+    PCD_SET_EP_TX_STATUS(PCD_Handle.Instance, epnum, USB_EP_TX_NAK);
+    PCD_CLEAR_TX_EP_CTR (PCD_Handle.Instance, epnum);
+    return USBD_OK;
 }
 
 // @brief  Sets a Stall condition on an endpoint of the Low Level Driver.

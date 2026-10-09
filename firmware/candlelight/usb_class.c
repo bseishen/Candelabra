@@ -504,7 +504,7 @@ bool USB_IRQ_DFU_Request(USBD_SetupReqTypedef *req)
             // Enter DFU mode with a delay of 300 ms
             // If the pin BOOT0 was disabled the user must reconnect the USB cable to generate a hardware reset.
             // Inform the firmware updater that the device cannot enter DFU mode by returning state DfuSte_AppDetach
-            // Added by ElmüSoft: In case of State = DfuState_Error, eFeedback is sent in StringIdx.
+            // Added by Elmï¿½Soft: In case of State = DfuState_Error, eFeedback is sent in StringIdx.
             eFeedback e_Feedback = dfu_switch_to_bootloader();
             switch (e_Feedback)
             {
@@ -670,6 +670,27 @@ void USBD_SendInDataToHost(uint8_t channel, uint8_t* buf, uint16_t len)
     USBD_LL_Transmit(EndpointsIN[channel], buf, len);
 }
 
+// Called when the adapter is opened or closed.
+// A USB IN transfer from the previous session may still be loaded in the endpoint, because the host has stopped reading.
+// It must be discarded, otherwise the host receives it after the next open in the wrong format (e.g. 20 instead of 24 bytes with timestamps).
+void USBD_AbortInTransfer(uint8_t channel)
+{
+    if (!Class_InitDone)
+        return; // endpoints not open yet
+
+    // Legacy protocol routes all CAN channels through interface 0
+    if (!GLB_ProtoElmue)
+        channel = 0;
+
+    buf_class* usb_buf = buf_get_instance(channel);
+
+    system_disable_irq();
+    USBD_LL_FlushEP(EndpointsIN[channel]);
+    usb_buf->SendZLP = false;
+    usb_buf->TxBusy  = false;
+    system_enable_irq();
+}
+
 // interrupt callback
 // The data from USBD_SendInDataToHost() has been sent to the host on the IN endpoint (0x81, 0x83, 0x85)
 uint8_t USB_IRQ_DataIn(uint8_t epnum)
@@ -677,7 +698,7 @@ uint8_t USB_IRQ_DataIn(uint8_t epnum)
     uint8_t channel = EpToChannel[epnum & 0xF]; // epnum = 0x81 --> channel 0, 0x83 --> 1, 0x85 --> 2
     buf_class* usb_buf = buf_get_instance(channel);
 
-    // This important code was missing in the legacy firmware. (fixed by ElmüSoft)
+    // This important code was missing in the legacy firmware. (fixed by Elmï¿½Soft)
     // After sending exactly 64 bytes a zero length packet (ZLP) must follow.
     // Read "Excellent USB Tutorial.chm" in subfolder "Documentation"
     if (usb_buf->SendZLP)
