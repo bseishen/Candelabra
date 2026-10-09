@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(Candelabra LANGUAGES C ASM)
 
 set(VERSION_MAJOR 1 CACHE STRING "Firmware major version")
-set(VERSION_MINOR 1 CACHE STRING "Firmware minor version")
+set(VERSION_MINOR 2 CACHE STRING "Firmware minor version")
 set(VERSION_PATCH 0 CACHE STRING "Firmware patch version")
 
 # Encode semver as BCD for USB bcdDevice descriptor: 0xMMmmpp
