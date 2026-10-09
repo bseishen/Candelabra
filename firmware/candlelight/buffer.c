@@ -20,9 +20,9 @@
 // ----- Globals
 extern eUserFlags GLB_UserFlags[CHANNEL_COUNT];
 
-// Global flag that enables the new ElmüSoft protocol for maximum USB throughput (Candlelight only).
-// It is not possible to enable the ElmüSoft protocol only for an individual channel,
-// because ElmüSoft uses different USB interfaces while Legacy routes all traffic through the first USB interface.
+// Global flag that enables the new Elmï¿½Soft protocol for maximum USB throughput (Candlelight only).
+// It is not possible to enable the Elmï¿½Soft protocol only for an individual channel,
+// because Elmï¿½Soft uses different USB interfaces while Legacy routes all traffic through the first USB interface.
 // To interpret the bytes of a USB packet, that was received from the host in usb_class.c, the protocol must be known.
 bool GLB_ProtoElmue = false;
 
@@ -65,7 +65,14 @@ void buf_clear_fifos(uint8_t channel, bool clear_can, bool clear_host)
         FifoReset(&inst->can_fifo,  inst->can_buffer,  sizeof(kCanFrameObject), CAN_QUEUE_SIZE);
         
     if (clear_host)
+    {
         FifoReset(&inst->host_fifo, inst->host_buffer, sizeof(kHostFrameUnion), HOST_QUEUE_SIZE);
+
+        // Also discard a stale USB IN transfer that is still loaded in the endpoint.
+        // Legacy routes all channels through interface 0 --> do not abort it while another channel is still using it.
+        if (GLB_ProtoElmue || !can_is_any_open())
+            USBD_AbortInTransfer(channel);
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -79,9 +86,13 @@ void buf_process(uint8_t channel, uint32_t tick_now)
     buf_process_can (channel, can_buf);
     buf_process_host(channel, usb_buf);
 
+    // A frame has been sent to CAN bus --> accept frames from the host again
+    USBD_ResumeOutTransfer(channel);
+
     // The APP_xxx errors are deleted after sending them to the host.
     // They must be refreshed here, so the Rx + Tx LED stay ON permanently and show that there is a problem.
-    if (can_buf->can_fifo .IsFull) error_assert(channel, APP_CanTxOverflow, false);
+    // A full can_fifo is not an error: the USB OUT endpoint NAKs the host until there is space again (back-pressure).
+    // APP_CanTxOverflow is only reported when a frame really had to be dropped (buf_store_tx_packet, blobs).
     if (usb_buf->host_fifo.IsFull) error_assert(channel, APP_UsbInOverflow, false);
 }
 
@@ -103,11 +114,11 @@ void buf_process_host(uint8_t channel, buf_class* usb_buf)
         return; // nothing to be sent
 
     uint16_t len;
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
     {
-        // Using the optimized new ElmüSoft protocol reduces unnecessary USB overhead as it was sent by the legacy firmware.
+        // Using the optimized new Elmï¿½Soft protocol reduces unnecessary USB overhead as it was sent by the legacy firmware.
         // If a CAN frame has only 2 data bytes, send only 2 data bytes over USB.
-        // All ElmüSoft messages use the same header, no matter if CAN packet or an ASCII message.
+        // All Elmï¿½Soft messages use the same header, no matter if CAN packet or an ASCII message.
         // If ELM_DevFlagSendUsbBlobs is set --> send multiple fames in one blob to the host.
 
         // Send blob with multiple frames
@@ -142,7 +153,7 @@ void buf_process_host(uint8_t channel, buf_class* usb_buf)
                 FifoRead(&usb_buf->host_fifo, &k_HostFrame, sizeof(k_HostFrame), FIFO_ReadNext);
             }
         }
-        else // only one ElmüSoft frame to be sent
+        else // only one Elmï¿½Soft frame to be sent
         {
             len = k_HostFrame.Header.size;
             memcpy(usb_buf->to_host_buf, &k_HostFrame, len);
@@ -186,9 +197,9 @@ void buf_process_can(uint8_t channel, buf_class* can_buf)
     can_send_packet(channel, &k_CanFrame.header, k_CanFrame.data);
     // At this point the Tx packet is in the CAN Tx FIFO, but it has not yet been transmitted to CAN bus.
 
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
     {
-        // The new ElmüSoft firmware sends an echo marker when the packet has REALLY been dispatched to CAN bus.
+        // The new Elmï¿½Soft firmware sends an echo marker when the packet has REALLY been dispatched to CAN bus.
         // This is when HAL_FDCAN_GetTxEvent() received the Tx event.
         // Here is nothing to be sent now because the packet is in the Tx FIFO and may wait there eternally until an ACK is received.
     }
@@ -264,7 +275,7 @@ bool buf_store_can_frame(uint8_t channel, uint8_t* can_frame)
     uint8_t  can_dlc = 0;
     uint8_t  marker  = 0;
     uint8_t* frame_data;
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
     {
         kTxFrameElmue *tx_frame = (kTxFrameElmue*)can_frame;
         if (tx_frame->header.msg_type != MSG_TxFrame)
@@ -344,7 +355,7 @@ bool buf_store_can_frame(uint8_t channel, uint8_t* can_frame)
 
         tx_header.FDFormat = FDCAN_FD_CAN;
 
-        // This was totally wrong in the orginal code (fixed by Elmüsoft)
+        // This was totally wrong in the orginal code (fixed by Elmï¿½soft)
         if (flags & FRM_BRS) // BRS bit is set if recessive
             tx_header.BitRateSwitch = FDCAN_BRS_ON;
     }
@@ -408,7 +419,7 @@ void buf_store_rx_packet_echo(uint8_t channel, FDCAN_RxHeaderTypeDef *rx_header,
     // ------------------------
 
     kHostFrameUnion k_HostFrame; // size = 80 byte
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
     {
         uint8_t byte_count;
         if (can_id & CAN_ID_RTR)
@@ -492,7 +503,7 @@ void buf_store_error(uint8_t channel)
     kErrorElmue*      frame_elmue = &k_HostFrame.Error;
 
     uint8_t* frame_data;
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
         frame_data = frame_elmue->err_data;
     else // legacy Geschwister Schneider protocol
         frame_data = frame_gs->pack_classic.data;
@@ -563,7 +574,7 @@ void buf_store_error(uint8_t channel)
 	frame_data[6] = state->tx_err_count;
 	frame_data[7] = state->rx_err_count;
 
-    if (GLB_ProtoElmue) // new ElmüSoft protocol
+    if (GLB_ProtoElmue) // new Elmï¿½Soft protocol
     {
         frame_elmue->header.size     = sizeof(kErrorElmue);
         frame_elmue->header.msg_type = MSG_Error;
@@ -595,6 +606,25 @@ bool buf_store_host_packet(uint8_t channel, void* packet, int size)
     return FifoWrite(&usb_buf->host_fifo, packet, size); // Fifo overflow is reported in buf_process()
 }
 
+// Back-pressure: return true if the host may send the next USB OUT transfer on the endpoint of this channel.
+// Two free entries are required: one for the next frame and one for a frame that may already be in the
+// second PMA buffer of the double buffered OUT endpoint when it is set to NAK.
+// The legacy protocol routes the frames for all CAN channels through interface 0 --> all channels must have space.
+// A Tx blob that does not fit is still rejected as before (the host must send it again).
+bool buf_can_accept_from_host(uint8_t channel)
+{
+    for (int C=0; C<CHANNEL_COUNT; C++)
+    {
+        if (GLB_ProtoElmue && C != channel)
+            continue;
+
+        kFifo* can_fifo = &buf_inst[C].can_fifo;
+        if (can_fifo->Count + 2 > can_fifo->MaxCount)
+            return false;
+    }
+    return true;
+}
+
 // ---------------------------------------------
 
 buf_class* buf_get_instance(uint8_t channel)
@@ -608,13 +638,13 @@ buf_class* buf_get_instance(uint8_t channel)
 buf_class* buf_get_inst_for_usb(uint8_t channel)
 {
     if (GLB_ProtoElmue)
-        return &buf_inst[channel]; // ElmüSoft -> send each CAN channel through it's own USB interface 0, 2 or 3
+        return &buf_inst[channel]; // Elmï¿½Soft -> send each CAN channel through it's own USB interface 0, 2 or 3
     else
         return &buf_inst[0];       // Legacy   -> send all CAN channels through USB interface 0
 }
 
 // ============================================ FIFO ===================================================
-// Fifo added by ElmüSoft
+// Fifo added by Elmï¿½Soft
 // This Fifo replaces the extremely ugly and clumsy ringbuffer of the legacy firmware
 
 void FifoReset(kFifo* Fifo, void* Ptr, int Size, int Capacity)

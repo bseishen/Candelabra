@@ -67,6 +67,7 @@ USBD_StatusTypeDef  USBD_LL_OpenEP(uint8_t  ep_addr, uint8_t  ep_type, uint16_t 
 
 USBD_StatusTypeDef  USBD_LL_CloseEP(uint8_t ep_addr);
 USBD_StatusTypeDef  USBD_LL_FlushEP(uint8_t ep_addr);
+USBD_StatusTypeDef  USBD_LL_SetOutReady(uint8_t ep_addr, bool ready);
 USBD_StatusTypeDef  USBD_LL_StallEP(uint8_t ep_addr);
 USBD_StatusTypeDef  USBD_LL_ClearStallEP(uint8_t ep_addr);
 uint8_t             USBD_LL_IsStallEP(uint8_t ep_addr);

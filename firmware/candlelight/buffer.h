@@ -44,6 +44,8 @@ typedef struct
     __IO bool  TxBusy;
     // Send a Zero Length Packet after the IN transfer
     __IO bool  SendZLP;
+    // The USB OUT endpoint NAKs the host because the CAN Tx FIFO is full (back-pressure)
+    __IO bool  RxPaused;
     
     // This was totally wrong in the legacy firmware.
     // They used only one pool buffer for everything.
@@ -64,8 +66,8 @@ typedef struct
     // The result was an adapter not sending anymore and even crashes when the buffer got full!
     // Nobody ever noticed that because of a complete lack of proper error handling.
     // The legacy firmware did not even set an error flag when a buffer overflow occurred.
-    uint8_t  to_host_buf  [MAX_BLOB_SIZE]; // stores USB IN  data during transmission (fixed by ElmüSoft)
-    uint8_t  from_host_buf[MAX_BLOB_SIZE]; // stores USB OUT data after reception     (fixed by ElmüSoft)   
+    uint8_t  to_host_buf  [MAX_BLOB_SIZE]; // stores USB IN  data during transmission (fixed by Elmï¿½Soft)
+    uint8_t  from_host_buf[MAX_BLOB_SIZE]; // stores USB OUT data after reception     (fixed by Elmï¿½Soft)   
     
 }  __attribute__ ((aligned (4))) buf_class;
 
@@ -80,5 +82,6 @@ bool buf_store_tx_packet   (uint8_t channel, FDCAN_TxHeaderTypeDef* tx_header, u
 void buf_store_rx_packet   (uint8_t channel, FDCAN_RxHeaderTypeDef* rx_header, uint8_t* rx_data);
 void buf_store_tx_echo     (uint8_t channel, FDCAN_TxEventFifoTypeDef* tx_event);
 bool buf_store_host_packet (uint8_t channel, void* packet, int size);
+bool buf_can_accept_from_host(uint8_t channel);
 buf_class* buf_get_instance(uint8_t channel);
      

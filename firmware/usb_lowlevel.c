@@ -212,11 +212,35 @@ USBD_StatusTypeDef USBD_LL_CloseEP(uint8_t ep_addr)
     return ConvStatus(HAL_PCD_EP_Close(&PCD_Handle, ep_addr));
 }
 
-// @brief  Flushes an endpoint of the Low Level Driver.
+// @brief  Flushes an IN endpoint of the Low Level Driver.
 // @param  ep_addr: Endpoint number
+// HAL_PCD_EP_Flush() does nothing on this USB peripheral: it has no FIFOs, a packet waits in the PMA until the host fetches it.
+// Set the endpoint to NAK, so a packet that is already loaded into the PMA is never sent, and discard a pending transfer complete flag.
+// Do not use HAL_PCD_EP_Close() + HAL_PCD_EP_Open() for this: they reset the data toggle, which the host does not know about,
+// so the host would silently discard the next packet.
 USBD_StatusTypeDef USBD_LL_FlushEP(uint8_t ep_addr)
 {
-    return ConvStatus(HAL_PCD_EP_Flush(&PCD_Handle, ep_addr));
+    if ((ep_addr & 0x80) == 0)
+        return USBD_FAIL; // OUT endpoints are not supported
+
+    uint8_t epnum = ep_addr & 0x0F;
+    PCD_SET_EP_TX_STATUS(PCD_Handle.Instance, epnum, USB_EP_TX_NAK);
+    PCD_CLEAR_TX_EP_CTR (PCD_Handle.Instance, epnum);
+    return USBD_OK;
+}
+
+// @brief  Back-pressure for an OUT endpoint that has already been armed with USBD_LL_PrepareReceive().
+// @param  ep_addr: Endpoint number
+// @param  ready:   false --> NAK all OUT packets from the host, true --> accept them again.
+// The receive buffer stays armed, so a transfer that was interrupted by the NAK continues where it stopped.
+// ATTENTION: For a double buffered endpoint one more packet may already be in the second PMA buffer when NAK is set.
+USBD_StatusTypeDef USBD_LL_SetOutReady(uint8_t ep_addr, bool ready)
+{
+    if ((ep_addr & 0x80) != 0)
+        return USBD_FAIL; // IN endpoints are not supported
+
+    PCD_SET_EP_RX_STATUS(PCD_Handle.Instance, ep_addr & 0x0F, ready ? USB_EP_RX_VALID : USB_EP_RX_NAK);
+    return USBD_OK;
 }
 
 // @brief  Sets a Stall condition on an endpoint of the Low Level Driver.
