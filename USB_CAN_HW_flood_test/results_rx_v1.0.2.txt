@@ -1,0 +1,40 @@
+flooder  #1: Candlelight 2.5 - WeActStudioV2 (208C34994B4550142)
+receiver #0: Candelabra Candlelight v1.0.2 - WeActStudioV2 (208A34BB4B4550142)  (normal mode, HW timestamps)
+
+flooder: 99028 frames sent (9903/s), 98209 echoes read, 0 USB send errors
+receiver: 28469 packets (2847/s), sizes {20: 1, 24: 28468}
+sequence drops: 104818
+frames with flags set: none  (0x1 = RX overflow)
+hw timestamp deltas: min 13 us, max 166983992 us, going backwards 0
+categories: {'20-byte packet': 1, 'error frame (CAN_ERR_FLAG)': 38, 'error frame as 20-byte packet': 1, 'RX frame with echo_id set (should be 0xFFFFFFFF)': 24, "  ...echo_id == the flooder's TX echo_id for that frame": 24}
+odd packets (30 shown, max 30):
+    (20, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000ebbd2918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '00020000000400004ebe2918')
+    (24, 'echo=0x1', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '8479000000000000aabe2918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000b9be2918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '000200000004000054bf2918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000a4bf2918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000f5bf2918')
+    (24, 'echo=0x2', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '877900000000000005c02918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000aac02918')
+    (24, 'echo=0x6', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '8b7900000000000063c12918')
+    (24, 'echo=0x2', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '8f79000000000000c0c22918')
+    (24, 'echo=0x6', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '93790000000000001fc42918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000b6c42918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '000200000004000007c52918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '000200000004000057c52918')
+    (24, 'echo=0x3', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '96790000000000007cc52918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '00020000000400001fc62918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '00020000000400008ec62918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000e1c62918')
+    (24, 'echo=0x7', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '9a79000000000000f1c62918')
+    (24, 'echo=0x0', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', '9d7900000000000032c82918')
+    (24, 'echo=0x5', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'a07900000000000098c92918')
+    (24, 'echo=0x1', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'a479000000000000f3ca2918')
+    (24, 'echo=0x5', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'a8790000000000005ccc2918')
+    (24, 'echo=0x1', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'ac79000000000000b6cd2918')
+    (24, 'echo=0x4', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'b17900000000000010cf2918')
+    (24, 'echo=0x6', 'id=0x80203000', 'dlc=2', 'ch=0', 'flags=0x0', 'b37900000000000078d02918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '0002000000040000e0d02918')
+    (24, 'echo=0xffffffff', 'id=0x20000004', 'dlc=8', 'ch=0', 'flags=0x0', '000200000004000023d12918')
