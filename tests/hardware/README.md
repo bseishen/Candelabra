@@ -13,7 +13,7 @@ with the 70% silent TX drop under load. See [Findings](#findings).
 | File | What |
 |---|---|
 | `flood_test.py` | The test. Windows and Linux, needs only `libusb1` |
-| `results/results_v1.1.0_flow-control.txt` | Raw output with the fixed firmware (classic 250k / 1M, FD 500k/5M, control run) |
+| `results/results_v1.2.0.txt` | Raw output with v1.2.0 (classic 250k / 1M, 1M with 8-byte frames, FD 500k/5M, deeper read queue, control run) |
 | `results/results_rx_v1.0.2.txt`, `results/results_rx_2.5.txt` | Raw output of the first (pyusb) version of this test on the old firmware. Most of what they show is stale data, see finding 1 |
 
 ## Running it
@@ -111,7 +111,7 @@ every line:
 |---|---|---|
 | Serial | 208A34BB4B4550142 | 208C34994B4550142 |
 | Firmware at first | Candelabra v1.0.2 | Candlelight 2.5 (ElmueSoft) |
-| Firmware at the end | Candelabra v1.1.0 + `usb-flow-control` | same |
+| Firmware at the end | Candelabra v1.2.0 | same |
 | CAN clock / feature word | 160 MHz / 0xE53B | 160 MHz / 0xE53B |
 
 Feature bits 14 and 15 aren't in the mainline Linux `gs_usb` list: they are
@@ -148,7 +148,7 @@ What the original findings actually showed:
 
 v1.1.0 already clears both queues (upstream sync f9c3bcb), which leaves
 1 stale packet per session: the one loaded in the IN endpoint. Commit
-`79689cd` discards it when a channel is opened or closed (it sets the endpoint
+`ae9cf6c` discards it when a channel is opened or closed (it sets the endpoint
 to NAK; close/reopen would reset the USB data toggle). Result: **0 stale
 packets**, only 24-byte packets on the receiver, timestamps 330–380 µs apart at
 250 kbit/s and never backwards.
@@ -167,7 +167,7 @@ TX FIFO, not when it has been transmitted, so it can be up to 3 frames early.
 The original "echoes for frames never transmitted"
 finding came from counting every IN packet as an echo, error frames included.
 
-Commit `5f6d195` NAKs the USB OUT endpoint while the CAN TX queue is full and
+Commit `7e30f64` NAKs the USB OUT endpoint while the CAN TX queue is full and
 accepts data again once frames have gone out. Results:
 
 | | Before | After |
@@ -179,45 +179,67 @@ accepts data again once frames have gone out. Results:
 The host's writes now block while the bus is busy, and for up to 500 ms when
 nothing ACKs before the firmware's TX timeout clears the queue.
 
-### 3. The cable
+### 3. Receive limit at a fully saturated bus
 
-At a saturated bus, one adapter dropped 0.7–2.6% of frames when receiving
-(isolated single frames, reported as USB IN overflow) and flooded about 3%
-slower. Swapping adapters and ports showed it follows **one USB cable**
-("cable X"), not the adapter or the port. USB full speed retries corrupted
-packets in hardware, which costs time without any visible error. In legacy
-mode at about 11,000 frames/s there is no headroom for that. Keep marginal
-cables off adapters that have to run a saturated bus.
+At 1 Mbit/s with 2-byte frames, the receiver drops about 0.5–1.5% of frames,
+always isolated single frames, and reports a USB IN overflow
+(`data[5]=0x08`). It only happens when the flooder keeps the bus completely
+full:
 
-### Results with the fixed firmware
+| Flooder rate | Receiver |
+|---|---|
+| 1 Mbit/s, 2-byte frames, up to ~10,880/s | lossless |
+| 1 Mbit/s, 2-byte frames, ~11,040–11,160/s | drops |
+| 1 Mbit/s, 8-byte frames, ~7,270/s | lossless, both directions |
+| FD 500k/5M, up to ~3,690/s | lossless |
+| FD 500k/5M, ~3,800–3,830/s | drops |
 
-From `results/results_v1.1.0_flow-control.txt` (Windows, async test). "Good cable"
-means the receiver wasn't on cable X:
+Quadrupling the host's queued reads (`--rx-queue 64`) doesn't help, so the
+limit is in the adapter: in the legacy protocol it sends one USB IN transfer
+per frame, and at about 11,000 transfers/s it falls slightly behind.
 
-| Bus | Frames/s | Receiver (good cable) | Echoes |
+Which direction reaches the full rate varies by about 3% between the two
+flooders, and it changed as cables and ports were swapped. That first looked
+like a bad USB cable, but a replacement cable gave the same result, and the
+drops always followed the flooder's rate, not a cable, port or adapter. Why
+one flooder sometimes leaves small gaps on the bus hasn't been determined.
+
+### Results with v1.2.0
+
+From `results/results_v1.2.0.txt` (Windows, async test):
+
+| Bus | Frames/s | Receiver | Echoes |
 |---|---|---|---|
-| Classic 250 kbit/s | ~2,850 | lossless | all |
-| Classic 1 Mbit/s | 10,700–11,100 | lossless | 17–42% missing, see limits |
-| FD 500k/5M, 64 bytes | 3,590–3,830 | lossless, 0 bad payload (2 USB packets per frame) | all |
+| Classic 250 kbit/s | ~2,845 | lossless | all |
+| Classic 1 Mbit/s, 8-byte frames | ~7,265 | lossless | all |
+| Classic 1 Mbit/s, 2-byte frames | 10,770–11,090 | lossless up to ~10,880/s, see finding 3 | 15–38% missing, see limits |
+| FD 500k/5M, 64 bytes | 3,610–3,810 | lossless up to ~3,690/s, 0 bad payload (2 USB packets per frame) | all |
 
 ### Known limits
 
-- **Echoes at 1 Mbit/s:** the flooder has to take in about 11,000 USB OUT
-  transfers/s and send about 11,000 echo transfers/s, one frame per transfer
-  each way. It can't do both: it drops echoes and reports a USB IN overflow.
-  This is the legacy gs_usb protocol's limit. ElmueSoft mode can bundle frames
-  into one transfer (`ELM_DevFlagSendUsbBlobs`), which this test doesn't use.
+- **Echoes at 1 Mbit/s with short frames:** the flooder has to take in about
+  11,000 USB OUT transfers/s and send about 11,000 echo transfers/s, one frame
+  per transfer each way. It can't do both: it drops echoes and reports a USB
+  IN overflow. At 7,300 frames/s (8-byte frames) every frame is echoed. This
+  is the legacy gs_usb protocol's limit, like finding 3. ElmueSoft mode can
+  bundle frames into one transfer (`ELM_DevFlagSendUsbBlobs`), which this test
+  doesn't use.
 - **Error reports are rate-limited** to one per 100 ms when the state changes
-  and one per 3 s when it doesn't, so thousands of dropped echoes show up as
+  and one per 3 s when it doesn't, so thousands of dropped frames show up as
   one or two error frames.
+- **LEDs:** both LEDs solid means bus off or an error flag such as USB IN
+  overflow. A flag set at the end of a run stays latched until the channel is
+  opened again, so both LEDs can stay lit between runs.
 - **Timestamps** are taken when the firmware moves a frame out of the
   controller's RX FIFO, not at reception on the bus, so they carry the main
   loop's latency as jitter. Under the floods above they stayed monotonic, with
-  gaps close to the frame time (median 86 µs at 1 Mbit/s, 348 µs at 250 kbit/s).
+  gaps close to the frame time (median 86–88 µs at 1 Mbit/s, 348 µs at
+  250 kbit/s).
 
 ## History of this README
 
 The first version blamed the timestamp layout of error frames, echoes for
 untransmitted frames and host-side mixing between the adapters. Those
 conclusions came from the stale-packet bug (finding 1) and from the old test
-counting every IN packet as an echo. This version replaces them.
+counting every IN packet as an echo. A later version blamed a USB cable for the
+receive drops; finding 3 replaces that.

@@ -1,0 +1,237 @@
+# flood_test.py on Windows 11 (libusb1 3.4.0, WinUSB), 2026-10-09
+# firmware on both adapters: Candelabra v1.2.0 (branch usb-flow-control)
+# both adapters directly on root hub ports 9 and 10 of the same USB 3 controller
+
+#0: 208A34BB4B4550142  Candelabra Candlelight v1.2.0 - WeAct Studio v2  fw 0x00010200  fclk 160 MHz  features 0xe53b  (FD)  bus 4 port 10
+#1: 208C34994B4550142  Candelabra Candlelight v1.2.0 - WeAct Studio v2  fw 0x00010200  fclk 160 MHz  features 0xe53b  (FD)  bus 4 port 9
+
+==================================================================
+> python flood_test.py --flooder 0 --receiver 1 --bitrate 250000
+flooder #0 208A34BB4B4550142 -> receiver #1 208C34994B4550142, 250k, dlc 2, queue 16, 4 s
+
+flooder accepted 11372 frames (2843/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 11309}
+   echoes 11309 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {24: 11312}
+   echoes 0 (wrong echo_id 0), rx frames 11311, bad payload 0
+   error frame len 24 id=0x20000000 data=0000000000000001: 1 (first at packet 11311 of 11312)
+
+receiver got 11311 frames (2828/s)
+   echoed and on bus 11309, echoed NOT on bus 0, on bus NOT echoed 2
+   gaps in seq 0..11310: 0 missing, burst length -> count {}
+   timestamps: min 330 us, median 349 us, p99 367 us, max 383 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --bitrate 250000
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 250k, dlc 2, queue 16, 4 s
+
+flooder accepted 11378 frames (2844/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 11314}
+   echoes 11314 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {24: 11316}
+   echoes 0 (wrong echo_id 0), rx frames 11315, bad payload 0
+   error frame len 24 id=0x20000000 data=0000000000000001: 1 (first at packet 11315 of 11316)
+
+receiver got 11315 frames (2829/s)
+   echoed and on bus 11314, echoed NOT on bus 0, on bus NOT echoed 1
+   gaps in seq 0..11314: 0 missing, burst length -> count {}
+   timestamps: min 331 us, median 348 us, p99 366 us, max 380 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 0 --receiver 1 --bitrate 1000000
+flooder #0 208A34BB4B4550142 -> receiver #1 208C34994B4550142, 1000k, dlc 2, queue 16, 4 s
+
+flooder accepted 43093 frames (10773/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 36398}
+   echoes 36397 (wrong echo_id 0), rx frames 0, bad payload 0
+   error frame len 20 id=0x20000004 data=0001000000080000: 1 (first at packet 28154 of 36398)
+== RECEIVER stream: packet sizes {24: 43093}
+   echoes 0 (wrong echo_id 0), rx frames 43093, bad payload 0
+
+receiver got 43093 frames (10773/s)
+   echoed and on bus 36397, echoed NOT on bus 0, on bus NOT echoed 6696
+   gaps in seq 0..43092: 0 missing, burst length -> count {}
+   timestamps: min 63 us, median 86 us, p99 173 us, max 452 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --bitrate 1000000
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 1000k, dlc 2, queue 16, 4 s
+
+flooder accepted 44375 frames (11094/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 28777}
+   echoes 28776 (wrong echo_id 0), rx frames 0, bad payload 0
+   error frame len 20 id=0x20000004 data=0001000000080000: 1 (first at packet 22311 of 28777)
+== RECEIVER stream: packet sizes {24: 43884}
+   echoes 0 (wrong echo_id 0), rx frames 43883, bad payload 0
+   error frame len 24 id=0x20000004 data=0001000000080000: 1 (first at packet 37875 of 43884)
+
+receiver got 43883 frames (10971/s)
+   echoed and on bus 28441, echoed NOT on bus 335, on bus NOT echoed 15442
+   gaps in seq 0..44374: 492 missing, burst length -> count {1: 479, 2: 5, 3: 1}
+   timestamps: min 56 us, median 88 us, p99 163 us, max 1096 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [FAIL] receiver: no gaps
+   [----] flooder sends at bus rate (back-pressure)  (not judged: receiver has gaps)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 0 --receiver 1 --bitrate 1000000 --dlc 8
+flooder #0 208A34BB4B4550142 -> receiver #1 208C34994B4550142, 1000k, dlc 8, queue 16, 4 s
+
+flooder accepted 29066 frames (7266/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 29003}
+   echoes 29003 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {24: 29012}
+   echoes 0 (wrong echo_id 0), rx frames 29011, bad payload 0
+   error frame len 24 id=0x20000000 data=0000000000000001: 1 (first at packet 29011 of 29012)
+
+receiver got 29011 frames (7253/s)
+   echoed and on bus 29003, echoed NOT on bus 0, on bus NOT echoed 8
+   gaps in seq 0..29010: 0 missing, burst length -> count {}
+   timestamps: min 118 us, median 136 us, p99 153 us, max 159 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --bitrate 1000000 --dlc 8
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 1000k, dlc 8, queue 16, 4 s
+
+flooder accepted 29055 frames (7264/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 28991}
+   echoes 28991 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {24: 29002}
+   echoes 0 (wrong echo_id 0), rx frames 29001, bad payload 0
+   error frame len 24 id=0x20000000 data=0000000000000001: 1 (first at packet 29001 of 29002)
+
+receiver got 29001 frames (7250/s)
+   echoed and on bus 28991, echoed NOT on bus 0, on bus NOT echoed 10
+   gaps in seq 0..29000: 0 missing, burst length -> count {}
+   timestamps: min 115 us, median 136 us, p99 154 us, max 167 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --bitrate 1000000 --rx-queue 64
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 1000k, dlc 2, queue 16, 4 s
+
+flooder accepted 44227 frames (11057/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {20: 27298}
+   echoes 27297 (wrong echo_id 0), rx frames 0, bad payload 0
+   error frame len 20 id=0x20000004 data=0001000000080000: 1 (first at packet 20636 of 27298)
+== RECEIVER stream: packet sizes {24: 43767}
+   echoes 0 (wrong echo_id 0), rx frames 43766, bad payload 0
+   error frame len 24 id=0x20000004 data=0001000000080000: 1 (first at packet 36181 of 43767)
+
+receiver got 43766 frames (10942/s)
+   echoed and on bus 27023, echoed NOT on bus 274, on bus NOT echoed 16743
+   gaps in seq 0..44226: 461 missing, burst length -> count {1: 439, 2: 11}
+   timestamps: min 56 us, median 88 us, p99 160 us, max 744 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 24-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [FAIL] receiver: no gaps
+   [----] flooder sends at bus rate (back-pressure)  (not judged: receiver has gaps)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 0 --receiver 1 --fd --bitrate 500000 --data-bitrate 5000000
+flooder #0 208A34BB4B4550142 -> receiver #1 208C34994B4550142, 500k/5M FD, dlc 15, queue 16, 4 s
+
+flooder accepted 14435 frames (3609/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {76: 14433}
+   echoes 14433 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {80: 14435}
+   echoes 0 (wrong echo_id 0), rx frames 14435, bad payload 0
+
+receiver got 14435 frames (3609/s)
+   echoed and on bus 14433, echoed NOT on bus 0, on bus NOT echoed 2
+   gaps in seq 0..14434: 0 missing, burst length -> count {}
+   timestamps: min 194 us, median 264 us, p99 378 us, max 478 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 80-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [PASS] receiver: no gaps
+   [PASS] flooder sends at bus rate (back-pressure)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --fd --bitrate 500000 --data-bitrate 5000000
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 500k/5M FD, dlc 15, queue 16, 4 s
+
+flooder accepted 15242 frames (3810/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {76: 15240}
+   echoes 15240 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {80: 14913, 24: 1}
+   echoes 0 (wrong echo_id 0), rx frames 14913, bad payload 0
+   error frame len 24 id=0x20000004 data=0001000000080000: 1 (first at packet 13888 of 14914)
+
+receiver got 14913 frames (3728/s)
+   echoed and on bus 14911, echoed NOT on bus 329, on bus NOT echoed 2
+   gaps in seq 0..15241: 329 missing, burst length -> count {1: 329}
+   timestamps: min 185 us, median 257 us, p99 529 us, max 1481 us, backwards 0
+
+   [PASS] no stale packets at start
+   [PASS] receiver: only 80-byte data frames
+   [PASS] receiver: no echo frames, no bad payload
+   [FAIL] receiver: no gaps
+   [----] flooder sends at bus rate (back-pressure)  (not judged: receiver has gaps)
+   [PASS] timestamps never backwards
+
+==================================================================
+> python flood_test.py --flooder 1 --receiver 0 --no-tx
+flooder #1 208C34994B4550142 -> receiver #0 208A34BB4B4550142, 250k, dlc 2, queue 16, 4 s
+
+flooder accepted 0 frames (0/s); USB IN errors flooder 0 receiver 0
+stale packets at start (left over from the previous session): flooder 0, receiver 0
+== FLOODER stream: packet sizes {}
+   echoes 0 (wrong echo_id 0), rx frames 0, bad payload 0
+== RECEIVER stream: packet sizes {}
+   echoes 0 (wrong echo_id 0), rx frames 0, bad payload 0
+
+receiver got 0 frames (0/s)
+   echoed and on bus 0, echoed NOT on bus 0, on bus NOT echoed 0
